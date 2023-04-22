@@ -4,19 +4,49 @@ import random
 
 import pdb
 
-# Takes a canvas and converts it to a png image.
-def canvas_to_png( canvas, filename_no_ext ):
 
-    filename = filename_no_ext
-    
-    # Create a temporary post script file.
-    canvas.postscript(file=filename + ".eps", colormode="color")
 
-    # Use the image class to open the postscript file.
-    img = Image.open(filename + ".eps")
+def generate_loteria_cards( number_of_cards ):
 
-    # use the image class to save the opened file as a png.
-    img.save( filename + ".png", "png")
+    # Loteria cards have 16 spaces and 54 images that those spaces can be.
+    number_of_images     = 16
+    total_to_choose_from = 54
+    set_of_loteria_cards = list()
+
+    # Loop through number of loteria cards to be generated.
+    for card_index in range(0,number_of_cards):
+        
+        current_card =  generate_random_set( number_of_images, total_to_choose_from )
+
+        set_of_loteria_cards.append(current_card)
+
+        # Add logic here to test for uniqueness between the currently generated set and all the previous ones.
+        # This is a brute force approach that can get slow.
+        # With the small set being generated in this project... this probably doesn't matter... 
+        if( len( set_of_loteria_cards ) > 1 ):
+            
+            # TODO move this all to its own function.
+
+            # Get the most recently generated set.
+            current_set = set_of_loteria_cards[card_index]
+
+            for test_index in range(0,card_index):
+                
+                # Get the set to test agaist the current set.
+                test_set = set_of_loteria_cards[test_index]
+            
+                # Compare them to check that they are unique.
+                are_unique = check_that_cards_are_unique( current_set, test_set)
+            
+                # If they aren't unique... then the current set is bad and needs to be regenerated.
+                # Currently just reports a message and continues.
+                if( are_unique == False ):
+                    print("Matching pair")
+                    print( current_set )
+                    print( test_set)
+                    pdb.set_trace()
+
+    return( set_of_loteria_cards )
 
 # Gets a number of samples from a range of values.
 # For example: loteria cards have 16 different images from a possible set of 54 images
@@ -55,46 +85,7 @@ def check_that_cards_are_unique( first_set, second_set ):
     # Are the same.
     return( False )
 
-def generate_loteria_cards( number_of_cards ):
 
-    # Loteria cards have 16 spaces and 54 images that those spaces can be.
-    number_of_images     = 16
-    total_to_choose_from = 54
-    set_of_loteria_cards = list()
-
-    # Loop through number of loteria cards to be generated.
-    for card_index in range(0,number_of_cards):
-        
-        current_card =  generate_random_set( number_of_images, total_to_choose_from )
-
-        set_of_loteria_cards.append(current_card)
-
-        # Add logic here to test for uniqueness between the currently generated set and all the previous ones.
-        # This is a brute force approach that can get slow.
-        # With the small set being generated in this project... this probably doesn't matter... 
-        if( len( set_of_loteria_cards ) > 1 ):
-            
-            # TODO move this all to its own function.
-
-            # Get the most recently generated set.
-            current_set = set_of_loteria_cards[card_index]
-
-            for test_index in range(0,card_index):
-                
-                # Get the set to test agaist the current set.
-                test_set = set_of_loteria_cards[test_index]
-            
-                # Compare them to check that they are unique.
-                are_unique = check_that_cards_are_unique( current_set, test_set)
-            
-                # If they aren't unique... then the current set is bad and needs to be regenerated.
-                if( are_unique == False ):
-                    print("Matching pair")
-                    print( current_set )
-                    print( test_set)
-                    pdb.set_trace()
-
-    return( set_of_loteria_cards )
 
 def create_all_loteria_card_images( set_of_loteria_cards ):
 
@@ -143,6 +134,20 @@ def create_loteria_card_image( card_number, card_contents, card_width, card_heig
     # save the generated image
     canvas_to_png( canvas, "Card_" + str(card_number) )
 
+# Takes a canvas and converts it to a png image.
+def canvas_to_png( canvas, filename_no_ext ):
+
+    filename = filename_no_ext
+    
+    # Create a temporary post script file.
+    canvas.postscript(file=filename + ".eps", colormode="color")
+
+    # Use the image class to open the postscript file.
+    img = Image.open(filename + ".eps")
+
+    # use the image class to save the opened file as a png.
+    img.save( filename + ".png", "png")
+    
 # Start by making a proof of concept that will show we can display images
 # a grid and then save off that image.
 if __name__ == "__main__":
