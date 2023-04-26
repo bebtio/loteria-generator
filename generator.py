@@ -1,12 +1,12 @@
-from tkinter import *
 from PIL import Image
 import random
+import math
 
 import pdb
 
 
 
-def generate_loteria_cards( number_of_cards ):
+def generate_loteria_cards( number_of_cards: int ) -> list:
 
     # Loteria cards have 16 spaces and 54 images that those spaces can be.
     number_of_images     = 16
@@ -52,7 +52,7 @@ def generate_loteria_cards( number_of_cards ):
 # For example: loteria cards have 16 different images from a possible set of 54 images
 # calling this function like this
 # generate_random_set( 16, 54 ) will generate 16 random numbers from the values 0-53
-def generate_random_set( number_of_samples, range_of_values ):
+def generate_random_set( number_of_samples: int, range_of_values: int ) -> list:
 
     # create our range of possible values.    
     values       = list(range(0, range_of_values))
@@ -72,7 +72,7 @@ def generate_random_set( number_of_samples, range_of_values ):
 # compare two number sets and ensure that their elements are different by at least 1.
 # we can do this by sorting them numerically and them comparing them until a single element
 # differs. When that happens, return true. Otherwise return false.
-def check_that_cards_are_unique( first_set, second_set ):
+def check_that_cards_are_unique( first_set: list, second_set: list ) -> bool:
     first_set.sort()
     second_set.sort()
 
@@ -86,8 +86,7 @@ def check_that_cards_are_unique( first_set, second_set ):
     return( False )
 
 
-
-def create_all_loteria_card_images( set_of_loteria_cards ):
+def create_all_loteria_card_images( set_of_loteria_cards: list ):
 
     card_width  = 12000
     card_height = 14000
@@ -95,59 +94,41 @@ def create_all_loteria_card_images( set_of_loteria_cards ):
     for card_index, card_contents in enumerate( set_of_loteria_cards ):
         
         # Gonna have to decide on a height and width for these cards.
-        create_loteria_card_image( card_index, card_contents, card_width, card_height )
+        create_single_loteria_card_image( card_index, card_contents, card_width, card_height )
 
 # Creates one instance of a loteria card and saves it as a png.
-def create_loteria_card_image( card_number, card_contents, card_width, card_height ):
+# I have no idea what the image sizes are going to be yet so force them to fit inside whatever
+# dimensions I give.
+def create_single_loteria_card_image( card_number: int, card_contents: list, card_width: int, card_height: int ):
 
-    # Create a window
-    root = Tk()
+    # open the picture of megaman.
+    img = Image.open('megaman.png')
 
-    # create a canvas to draw on.
-    canvas = Canvas(root, width=card_width, height=card_height)
-
-    # no idea what this does yet.
-    canvas.pack()
-
-    # open the image of megaman.
-    img = PhotoImage(file='megaman.png')
-
-    # Will find a way to dynamically set these based in card_width and card_height.
-    canvas.create_text( 300, 10, text="Loteria",                  font=("Helvetica", "15", "bold") )
-    canvas.create_text( 900, 10, text="Card " + str(card_number), font=("Helvetica", "15", "bold") )
-    # Draw the image onto the canvas nine times at nine different spots.
-    canvas.create_image( 200, 250, image=img )
-    canvas.create_image( 575, 250, image=img )
-    canvas.create_image( 950, 250, image=img )
-
-    canvas.create_image( 200, 675, image=img )
-    canvas.create_image( 575, 675, image=img )
-    canvas.create_image( 950, 675, image=img )
-
-    canvas.create_image( 200, 1100, image=img )
-    canvas.create_image( 575, 1100, image=img )
-    canvas.create_image( 950, 1100, image=img )
-
-    # update the canvas to make sure the images show.
-    canvas.update()
-
-    # save the generated image
-    canvas_to_png( canvas, "Card_" + str(card_number) )
-
-# Takes a canvas and converts it to a png image.
-def canvas_to_png( canvas, filename_no_ext ):
-
-    filename = filename_no_ext
+    # Force the picture to be 1/4 the size of the card dimensions.
+    image_width  = int(card_width/4)
+    image_height = int(card_height/4) 
+    img  = img.resize((image_width,image_height))
+        
+    # Make the spacing between pictures to be the size of an image.
+    x_spacing = image_width
+    y_spacing = image_height
     
-    # Create a temporary post script file.
-    canvas.postscript(file=filename + ".eps", colormode="color")
+    # Create the loteria card image which the pictures will be paste onto.
+    loteria_image = Image.new("RGB", (card_width,card_height), color="white")
 
-    # Use the image class to open the postscript file.
-    img = Image.open(filename + ".eps")
+    # Loop over the positions and add the pictures to the loteria card image.
+    for row in range(4):
+        for col in range(4):
+            
+            x = x_spacing * col
+            y = y_spacing * row
 
-    # use the image class to save the opened file as a png.
-    img.save( filename + ".png", "png")
-    
+            loteria_image.paste( img, (x,y) )
+
+    # Save the image.
+    loteria_image.save("Card_" +str(card_number)+".pdf",'PDF',quality=100)
+
+
 # Start by making a proof of concept that will show we can display images
 # a grid and then save off that image.
 if __name__ == "__main__":
@@ -159,8 +140,10 @@ if __name__ == "__main__":
     # Where the first index is a loteria card and the second index is the 
     # contents of that card, which are 16 numbers representing an image index which 
     # will be used later to actually generate the card.
-    set_of_loteria_cards = generate_loteria_cards( 30 )
+    
+    #set_of_loteria_cards = generate_loteria_cards( 30 )
 
     # create the cards based on the set_of_loteria_cards array.
     #create_all_loteria_card_images( set_of_loteria_cards )
     
+    create_single_loteria_card_image(1, None, 595, 842 )
