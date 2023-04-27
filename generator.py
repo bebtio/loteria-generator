@@ -1,7 +1,7 @@
 from PIL import Image
 import random
 import math
-
+import os
 import pdb
 
 
@@ -87,27 +87,19 @@ def check_that_cards_are_unique( first_set: list, second_set: list ) -> bool:
 
 
 def create_all_loteria_card_images( set_of_loteria_cards: list ):
-
-    card_width  = 12000
-    card_height = 14000
-
-    for card_index, card_contents in enumerate( set_of_loteria_cards ):
-        
-        # Gonna have to decide on a height and width for these cards.
-        create_single_loteria_card_image( card_index, card_contents, card_width, card_height )
+    pass
 
 # Creates one instance of a loteria card and saves it as a png.
 # I have no idea what the image sizes are going to be yet so force them to fit inside whatever
 # dimensions I give.
-def create_single_loteria_card_image( card_number: int, card_contents: list, card_width: int, card_height: int ):
+def create_single_loteria_card_image( save_path: str, card_number: int, card_contents: list, card_width: int, card_height: int ):
 
-    # open the picture of megaman.
-    img = Image.open('megaman.png')
+    # get the images.
+    images = card_contents
 
     # Force the picture to be 1/4 the size of the card dimensions.
     image_width  = int(card_width/4)
     image_height = int(card_height/4) 
-    img  = img.resize((image_width,image_height))
         
     # Make the spacing between pictures to be the size of an image.
     x_spacing = image_width
@@ -120,30 +112,70 @@ def create_single_loteria_card_image( card_number: int, card_contents: list, car
     for row in range(4):
         for col in range(4):
             
-            x = x_spacing * col
-            y = y_spacing * row
+            image_index = row*4 + col 
+            img  = images[image_index]
+            img  = img.resize((image_width,image_height))
+
+            x = x_spacing * col + 1
+            y = y_spacing * row + 1
 
             loteria_image.paste( img, (x,y) )
 
     # Save the image.
-    loteria_image.save("Card_" +str(card_number)+".pdf",'PDF',quality=100)
+    os.makedirs( save_path,  exist_ok=True )
+    output_file_name = save_path + "/" + "Card_" +str(card_number)+".pdf"
+    loteria_image.save( output_file_name,'PDF',quality=100)
 
+
+def get_battlechip_images( filename='megaman_images/battlechips.png' ):
+    img = Image.open(filename)
+
+    image_height = 73
+    image_width  = 67
+
+    h_start = 0
+    w_start = 1
+    h_stop  = image_height
+    w_stop  = image_width
+
+    images = list()
+    for i in range(6):
+        for j in range(10):
+
+            # Create the crop indices to pull out indivial sprites from the sprite sheet.
+            curr_h_start = h_start      + image_height * i + i
+            curr_w_start = w_start      + image_width  * j
+            curr_h_stop  = image_height + image_height * i + i
+            curr_w_stop  = image_width  + image_width  * j
+
+            curr_img = img.crop( ( curr_w_start, curr_h_start , curr_w_stop ,curr_h_stop))
+            images.append(curr_img)
+
+    return( images )
 
 # Start by making a proof of concept that will show we can display images
 # a grid and then save off that image.
 if __name__ == "__main__":
 
 
-    pdb.set_trace()
 
     # Generate a set of cards. Basically an array of arrays.
     # Where the first index is a loteria card and the second index is the 
     # contents of that card, which are 16 numbers representing an image index which 
     # will be used later to actually generate the card.
     
-    #set_of_loteria_cards = generate_loteria_cards( 30 )
+    images = get_battlechip_images()
+    set_of_loteria_cards = generate_loteria_cards( 10 )
 
     # create the cards based on the set_of_loteria_cards array.
     #create_all_loteria_card_images( set_of_loteria_cards )
+
+
     
-    create_single_loteria_card_image(1, None, 595, 842 )
+    images_to_send = list()
+
+    for card_index, x in enumerate(set_of_loteria_cards):
+        for image_index in x:
+            images_to_send.append(images[image_index])
+        create_single_loteria_card_image("megaman_loteria_cards", card_index, images_to_send, 595, 842 )
+        images_to_send.clear()
