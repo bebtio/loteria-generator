@@ -1,4 +1,4 @@
-from PIL import Image
+from PIL import Image, ImageDraw
 import random
 import math
 import os
@@ -96,17 +96,23 @@ def create_single_loteria_card_image( save_path: str, card_number: int, card_con
 
     # get the images.
     images = card_contents
-
+    
+    header_size = int( card_height * .025 )
     # Force the picture to be 1/4 the size of the card dimensions.
     image_width  = int(card_width/4)
-    image_height = int(card_height/4) 
+    image_height = int((card_height-header_size)/4) 
         
     # Make the spacing between pictures to be the size of an image.
     x_spacing = image_width
     y_spacing = image_height
     
     # Create the loteria card image which the pictures will be paste onto.
-    loteria_image = Image.new("RGB", (card_width,card_height), color="white")
+    loteria_image = Image.new("RGB", (card_width,card_height+header_size), color="white")
+
+    
+    draw_card_text( "Card " + str(card_number), loteria_image, 25,25)
+    draw_card_text( "Loteria", loteria_image, 500,25)
+    
 
     # Loop over the positions and add the pictures to the loteria card image.
     for row in range(4):
@@ -117,7 +123,7 @@ def create_single_loteria_card_image( save_path: str, card_number: int, card_con
             img  = img.resize((image_width,image_height))
 
             x = x_spacing * col + 1
-            y = y_spacing * row + 1
+            y = y_spacing * row + 1 + header_size * 2
 
             loteria_image.paste( img, (x,y) )
 
@@ -126,6 +132,8 @@ def create_single_loteria_card_image( save_path: str, card_number: int, card_con
     output_file_name = save_path + "/" + "Card_" +str(card_number)+".pdf"
     loteria_image.save( output_file_name,'PDF',quality=100)
 
+def draw_card_text( text: str, image: Image, x_pos: int, y_pos: int ):
+        ImageDraw.Draw(image).text((x_pos,y_pos), text, fill=(0,0,0,255) )
 
 def get_battlechip_images( filename='megaman_images/battlechips.png' ):
     img = Image.open(filename)
@@ -147,35 +155,53 @@ def get_battlechip_images( filename='megaman_images/battlechips.png' ):
             curr_w_start = w_start      + image_width  * j
             curr_h_stop  = image_height + image_height * i + i
             curr_w_stop  = image_width  + image_width  * j
-
-            curr_img = img.crop( ( curr_w_start, curr_h_start , curr_w_stop ,curr_h_stop))
+    
+            curr_img = img.crop( ( curr_w_start, curr_h_start , curr_w_stop ,curr_h_stop ) )
             images.append(curr_img)
 
     return( images )
+
+# Get the images that will be used to generate loteria cards.
+def get_loteria_images( path_to_images: str ) -> list():
+    
+    image_list = list()
+
+    # Loop through the path and find all the images.
+    for root, dirs, files in os.walk( path_to_images ):
+        for file in files:
+
+            # Get the absolute path of the current image.
+            p = os.path.join(root,file)
+            p = os.path.abspath(p)
+
+            # Open it as an image object.
+            img = Image.open(p)
+            image_list.append(img)
+
+    return(image_list)
 
 # Start by making a proof of concept that will show we can display images
 # a grid and then save off that image.
 if __name__ == "__main__":
 
 
-
+    images = get_loteria_images( "loteria_images" )
     # Generate a set of cards. Basically an array of arrays.
     # Where the first index is a loteria card and the second index is the 
     # contents of that card, which are 16 numbers representing an image index which 
     # will be used later to actually generate the card.
     
-    images = get_battlechip_images()
-    set_of_loteria_cards = generate_loteria_cards( 10 )
+    set_of_loteria_cards = generate_loteria_cards( 4 )
 
     # create the cards based on the set_of_loteria_cards array.
     #create_all_loteria_card_images( set_of_loteria_cards )
 
 
     
-    images_to_send = list()
-
+    images_to_make = list()
+    
     for card_index, x in enumerate(set_of_loteria_cards):
         for image_index in x:
-            images_to_send.append(images[image_index])
-        create_single_loteria_card_image("megaman_loteria_cards", card_index, images_to_send, 595, 842 )
-        images_to_send.clear()
+            images_to_make.append(images[image_index % 5])
+        create_single_loteria_card_image("test_loteria_cards", card_index, images_to_make, 595, 842 )
+        images_to_make.clear()
