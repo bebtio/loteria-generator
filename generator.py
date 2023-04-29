@@ -1,6 +1,5 @@
 from PIL import Image, ImageDraw, ImageFont
 import random
-import math
 import os
 import argparse
 
@@ -17,7 +16,7 @@ def main():
                                       description="Takes a directory filled with images and generates a given number of Loteria cards based on those images."
                                     )
 
-    parser.add_argument( "-c", "--num_cards_to_generate" , type=int, default=1        )
+    parser.add_argument( "-n", "--num_cards_to_generate" , type=int, default=1        )
     parser.add_argument( "-l", "--load_path"             , type=str, default="images" )
     parser.add_argument( "-s", "--save_path"             , type=str, default="output" )
     parser.add_argument( "-x", "--card_width"            , type=int, default=595      )
@@ -288,6 +287,9 @@ def save_loteria_card_as_pdf( loteria_image, save_path: str, filename: str ):
     
     # Call the save function.
     loteria_image.save( output_file_name,'PDF',quality=100)
+
+def save_loteria_draw_pile( save_path: str, filename: str ):
+    pass
 
 if __name__ == "__main__":
 
