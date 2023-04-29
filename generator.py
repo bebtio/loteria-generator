@@ -16,11 +16,11 @@ def main():
                                       description="Takes a directory filled with images and generates a given number of Loteria cards based on those images."
                                     )
 
-    parser.add_argument( "-n", "--num_cards_to_generate" , type=int, default=1        )
-    parser.add_argument( "-l", "--load_path"             , type=str, default="images" )
-    parser.add_argument( "-s", "--save_path"             , type=str, default="output" )
-    parser.add_argument( "-x", "--card_width"            , type=int, default=595      )
-    parser.add_argument( "-y", "--card_height"           , type=int, default=842      )
+    parser.add_argument( "-n", "--num_cards_to_generate" , type=int, default=1       , help="The number of loteria cards that will be generated."                          )
+    parser.add_argument( "-l", "--load_path"             , type=str, default="images", help="The path where the images used to generate loteria cards are expected to be." )
+    parser.add_argument( "-s", "--save_path"             , type=str, default="output", help="The path where the generated cards will be stored."                           )
+    parser.add_argument( "-x", "--card_width"            , type=int, default=595     , help="The width of the Loteria card in pixels."                                     )
+    parser.add_argument( "-y", "--card_height"           , type=int, default=842     , help="The height of the Loteria card in pixels."                                    )
 
     args = parser.parse_args()
 
