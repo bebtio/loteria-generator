@@ -1,4 +1,4 @@
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 import random
 import math
 import os
@@ -110,8 +110,8 @@ def create_single_loteria_card_image( save_path: str, card_number: int, card_con
     loteria_image = Image.new("RGB", (card_width,card_height+header_size), color="white")
 
     
-    draw_card_text( "Card " + str(card_number), loteria_image, 25,25)
-    draw_card_text( "Loteria", loteria_image, 500,25)
+    draw_card_text( "Card " + str(card_number+1), loteria_image, 5,10)
+    draw_card_text( "Loteria", loteria_image, 500, 10)
     
 
     # Loop over the positions and add the pictures to the loteria card image.
@@ -129,11 +129,13 @@ def create_single_loteria_card_image( save_path: str, card_number: int, card_con
 
     # Save the image.
     os.makedirs( save_path,  exist_ok=True )
-    output_file_name = save_path + "/" + "Card_" +str(card_number)+".pdf"
+    output_file_name = save_path + "/" + "Card_" +str(card_number+1)+".pdf"
     loteria_image.save( output_file_name,'PDF',quality=100)
 
 def draw_card_text( text: str, image: Image, x_pos: int, y_pos: int ):
-        ImageDraw.Draw(image).text((x_pos,y_pos), text, fill=(0,0,0,255) )
+        #pdb.set_trace()
+        font = ImageFont.truetype("/usr/share/fonts/truetype/abyssinica/AbyssinicaSIL-Regular.ttf",28,encoding="unic")
+        ImageDraw.Draw(image).text((x_pos,y_pos), text, fill=(0,0,0,255), font=font )
 
 def get_battlechip_images( filename='megaman_images/battlechips.png' ):
     img = Image.open(filename)
