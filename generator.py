@@ -161,10 +161,10 @@ def generate_loteria_card_image_indices( number_of_cards: int, number_of_images:
 def generate_random_set( number_of_samples: int, range_of_values: int ) -> list:
 
     # create our range of possible values.    
-    values       = list(range(0, range_of_values))
+    values       = list( range( 0, range_of_values ) )
 
     # Select number_of_samples of them randomly
-    returnValues = random.sample(values, number_of_samples)
+    returnValues = random.sample( values, number_of_samples )
 
     return( returnValues )
 
@@ -185,11 +185,12 @@ def check_that_cards_are_unique( first_set: list, second_set: list ) -> bool:
     # Compare sets element by element. 
     # The only way these are not unique is if we iterate over the whole set
     # and we never find a mismatching pair.
-    for index, val in enumerate(first_set):
+    # enumerate works here because first_set and second_set will be the same size.
+    for index, val in enumerate ( first_set ):
         
         # As soon as we find a mismatching pair, return.
-        if( first_set[index] != second_set[index]):
-            return(True)
+        if( first_set[ index ] != second_set[ index ]):
+            return( True )
 
     # If we never found a mismatching index, then these two sets of values
     # Are the same.
@@ -226,7 +227,7 @@ def create_single_loteria_card_image( save_path: str, card_number: int, card_con
     y_spacing = image_height + 1
     
     # Create the Loteria card image which the pictures will be paste onto.
-    loteria_image = Image.new("RGB", ( card_width, card_height), color="white")
+    loteria_image = Image.new( "RGB", ( card_width, card_height ), color="white" )
 
     # Draw the text that goes into the header.
     draw_card_text( "Carta " + str( card_number + 1 ), loteria_image, 5, 0 )
@@ -250,7 +251,7 @@ def create_single_loteria_card_image( save_path: str, card_number: int, card_con
             y = y_spacing * row + header_size
 
             # Paste the current image.
-            loteria_image.paste( img, (x,y) )
+            loteria_image.paste( img,  ( x, y ) )
 
     # Save the image.
     card_filename = "Card_" + str( card_number + 1 )
@@ -258,7 +259,7 @@ def create_single_loteria_card_image( save_path: str, card_number: int, card_con
 
 ###########################################################################
 # draw_card_text
-# Description: Draws card text  onto the image at position (x_pos, y_pos)
+# Description: Draws card text  onto the image at position ( x_pos, y_pos )
 # text:  The text to draw on the image.
 # image: The image to draw text on.
 # x_pos: The x position to draw the text.
@@ -268,7 +269,7 @@ def draw_card_text( text: str, image: Image, x_pos: int, y_pos: int ):
         
         font = ImageFont.truetype( "/usr/share/fonts/truetype/abyssinica/AbyssinicaSIL-Regular.ttf", 28, encoding="unic" )
         
-        ImageDraw.Draw(image).text( ( x_pos, y_pos ), text, fill=(0,0,0,255), font=font )
+        ImageDraw.Draw( image ).text( ( x_pos, y_pos ), text, fill=(0,0,0,255), font=font )
 
 ###########################################################################
 # save_loteria_card_as_pdf
