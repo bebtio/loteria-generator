@@ -1,8 +1,10 @@
 from PIL import Image, ImageDraw, ImageFont
+import math
 import random
 import os
 import argparse
 
+import pdb
 
 ###########################################################################
 # Main function:
@@ -19,13 +21,14 @@ def main():
     parser.add_argument( "-n", "--num_cards_to_generate" , type=int, default=1       , help="The number of loteria cards that will be generated."                          )
     parser.add_argument( "-l", "--load_path"             , type=str, default="images", help="The path where the images used to generate loteria cards are expected to be." )
     parser.add_argument( "-s", "--save_path"             , type=str, default="output", help="The path where the generated cards will be stored."                           )
-    parser.add_argument( "-x", "--card_width"            , type=int, default=595     , help="The width of the Loteria card in pixels."                                     )
-    parser.add_argument( "-y", "--card_height"           , type=int, default=842     , help="The height of the Loteria card in pixels."                                    )
+    parser.add_argument( "-x", "--card_width"            , type=int, default=595*2     , help="The width of the Loteria card in pixels."                                     )
+    parser.add_argument( "-y", "--card_height"           , type=int, default=842*2     , help="The height of the Loteria card in pixels."                                    )
 
     args = parser.parse_args()
 
     # Run the generator.
     create_all_loteria_card_images( args.num_cards_to_generate, args.load_path, args.save_path, args.card_width, args.card_height )
+    
 
 ###########################################################################
 # create_all_loteria_card_images:
@@ -48,9 +51,6 @@ def create_all_loteria_card_images( num_cards_to_generate: int, load_path: str, 
     # will be used later to actually pull a card from the images list.
     set_of_loteria_cards = generate_loteria_card_image_indices( num_cards_to_generate, 16, 54 )
 
-    # create the cards based on the set_of_loteria_cards array.
-    #create_all_loteria_card_images( set_of_loteria_cards )
-
     images_to_make = list()
     
     # Loop through each of the numerical representations of each Loteria card.
@@ -58,6 +58,8 @@ def create_all_loteria_card_images( num_cards_to_generate: int, load_path: str, 
 
         # Pull out the integers that represent each image and store them in the images_to_make list.
         for image_index in x:
+
+            # TODO: don't forget to reomve this %. Otherwise we will always choose the first 5 images in the list.
             images_to_make.append( images [image_index % 5 ] )
 
         # Pass the card index, the images for this Loteria card, and the card dimensions to the function
@@ -210,7 +212,10 @@ def create_single_loteria_card_image( save_path: str, card_number: int, card_con
 
     # Set the images to a local variable.
     images = card_contents
-    
+
+    # Create the Loteria card image which the pictures will be paste onto.
+    loteria_image = Image.new( "RGB", ( card_width, card_height ), color="white" )
+
     # The header a fraction of the card height.
     header_size = int( card_height * .04 )
 
@@ -218,44 +223,61 @@ def create_single_loteria_card_image( save_path: str, card_number: int, card_con
     # minues the size of the header.
     image_display_height = card_height-header_size
 
-    # Force each image to be 1/4 the size of the card dimensions.
-    image_width         = ( card_width // 4 )
-    image_height        = ( image_display_height // 4 ) 
-        
-    # Make the spacing between pictures to be the size of an image plus.
-    x_spacing = image_width  + 1
-    y_spacing = image_height + 1
-    
-    # Create the Loteria card image which the pictures will be paste onto.
-    loteria_image = Image.new( "RGB", ( card_width, card_height ), color="white" )
-
     # Draw the text that goes into the header.
     draw_card_text( "Carta " + str( card_number + 1 ), loteria_image, 5, 0 )
     draw_card_text( "Loteria", loteria_image, 500, 0 )
-    
-    # Loop over the positions indices and add the pictures to the Loteria card image.
-    for row in range(4):
-        for col in range(4):
-            
-            # Compute the linear index of the image.
-            image_index = row*4 + col 
 
-            # Pull out the image and resize it to fit within a 4x4 grid on the
-            # Loteria card.
-            img  = images[ image_index ]
-            img  = img.resize( ( image_width, image_height ) )
-
-            # Compute the x ( width positioning ) and the y, ( height positioning )
-            # of each image onto the Loteria page.
-            x = x_spacing * col
-            y = y_spacing * row + header_size
-
-            # Paste the current image.
-            loteria_image.paste( img,  ( x, y ) )
+    # Paste the Loteria images into the the Loteria card in a 4x4 grid.
+    loteria_image = paste_grid_of_images( loteria_image, card_contents, card_width, image_display_height, 0, header_size, 4, 4 )
 
     # Save the image.
     card_filename = "Card_" + str( card_number + 1 )
     save_loteria_card_as_pdf( loteria_image, save_path, card_filename )
+
+###########################################################################
+# paste_grid_of_images
+# Description: Takes an image and a list of sub images. Pastes the sub images
+# onto the main_image in a grid pattern.
+# main_image:       The main image. Sub images will be pasted onto this.
+# images_to_paste:  The list of images that will be pasted onto the main image.
+# paste_area_width: The width of the area, in pixels, that the pasting will cover.
+# paste_area_height:The height of the area, in pixels, that the pasting will cover.
+# x_offset:         The x position where the pasting will begin.
+# y_offset:         The y position where the pasting will begin.
+# num_x_elements:   The number of x ( row )elements to sub divide the paste area.
+# num_y_elements:   The number of y ( column ) elements to sub divide the paste area.
+###########################################################################
+def paste_grid_of_images( main_image, images_to_paste: list, paste_area_width: int, paste_area_height: int, x_offset = 0, y_offset= 0, num_x_elements = 4, num_y_elements = 4 ):
+    
+    # Force each image to be 1/4 the size of the card dimensions.
+    paste_image_width         = ( paste_area_width // num_x_elements )
+    paste_image_height        = ( paste_area_height // num_y_elements ) 
+        
+    # Make the spacing between pictures to be the size of an image plus.
+    x_spacing = paste_image_width 
+    y_spacing = paste_image_height
+
+    # Loop over the positions indices and add the pictures to the Loteria card image.
+    for row in range( num_y_elements ):
+        for col in range( num_x_elements ):
+            
+            # Compute the linear index of the image.
+            image_index = ( row * num_x_elements ) + col 
+
+            # Pull out the image and resize it to fit within a 4x4 grid on the
+            # Loteria card.
+            img  = images_to_paste[ image_index ]
+            img  = img.resize( ( paste_image_width, paste_image_height ) )
+
+            # Compute the x ( width positioning ) and the y, ( height positioning )
+            # of each image onto the Loteria page.
+            x = x_spacing * col
+            y = y_spacing * row + y_offset
+
+            # Paste the current image.
+            main_image.paste( img,  ( x, y ) )
+
+    return( main_image )
 
 ###########################################################################
 # draw_card_text
@@ -287,11 +309,32 @@ def save_loteria_card_as_pdf( loteria_image, save_path: str, filename: str ):
     output_file_name = save_path + "/" + filename +".pdf"
     
     # Call the save function.
-    loteria_image.save( output_file_name,'PDF',quality=100)
+    loteria_image.save( output_file_name,'PDF', quality=100)
 
-def save_loteria_draw_pile( save_path: str, filename: str ):
-    pass
+###########################################################################
+# save_loteria_draw_pile
+# Description: Takes all the images that make up this loteria game and
+# saves them to a number of pages, evenly spaced out.
+# WIP
+###########################################################################
+def create_loteria_draw_pile( image_width: int, image_height: int, loteria_card_images: list, save_path: str, filename: str, number_of_pages: int ):
+    
+    number_of_cards = len( loteria_card_images )
+    cards_per_page  = int( math.ceil( number_of_cards / number_of_pages ) )
+
+
+    # Make a new image for the draw pile.
+    draw_pile_image = Image.new( "RGB", ( image_width, image_height ), color="white" )
+
+    image = paste_grid_of_images(draw_pile_image, loteria_card_images, image_width, image_height, 0,0, 8,8 )
+    
+    output_file_name = save_path + "/" + filename 
+    image.save( output_file_name, 'PDF', quality=100 )
+
+    pdb.set_trace();
 
 if __name__ == "__main__":
 
+    #images = load_loteria_images(  "./images/" )
+    #create_loteria_draw_pile( 595*2, 842*2, images, "output", "deck_image.pdf", 1 )
     main()
