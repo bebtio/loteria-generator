@@ -4,18 +4,17 @@ import math
 import os
 import argparse
 
-import pdb
 
 ###########################################################################
 # Main function:
 # Reads in arguments from the command line and
-# generates loteria cards based on that input.
+# generates Loteria cards based on that input.
 ###########################################################################
 def main():
 
     parser = argparse.ArgumentParser( 
                                       prog="LoteriaCardGenerator",
-                                      description="Takes a directory filled with images and generates a given number of loteria cards based on those images."
+                                      description="Takes a directory filled with images and generates a given number of Loteria cards based on those images."
                                     )
 
     parser.add_argument( "-c", "--num_cards_to_generate" , type=int, default=1        )
@@ -31,8 +30,8 @@ def main():
 
 ###########################################################################
 # create_all_loteria_card_images:
-# Description: Generates all loteria cards based on the inputs.
-# num_cards_to_generate: The number of unique loteria cards to generate.
+# Description: Generates all Loteria cards based on the inputs.
+# num_cards_to_generate: The number of unique Loteria cards to generate.
 # load_path:             The path where the images used to make the cards
 #                        are stored.
 # save_path:             The location to save the generated cards.
@@ -45,7 +44,7 @@ def create_all_loteria_card_images( num_cards_to_generate: int, load_path: str, 
     images = load_loteria_images( load_path )
     
     # Generate a set of cards. Basically an array of arrays of integers.
-    # Where the first index is a loteria card and the second index is the 
+    # Where the first index is a Loteria card and the second index is the 
     # contents of that card, which are 16 integers representing an image index which 
     # will be used later to actually pull a card from the images list.
     set_of_loteria_cards = generate_loteria_card_image_indices( num_cards_to_generate, 16, 54 )
@@ -55,19 +54,19 @@ def create_all_loteria_card_images( num_cards_to_generate: int, load_path: str, 
 
     images_to_make = list()
     
-    # Loop through each of the numerical representations of each loteria card.
+    # Loop through each of the numerical representations of each Loteria card.
     for card_index, x in enumerate( set_of_loteria_cards ):
 
         # Pull out the integers that represent each image and store them in the images_to_make list.
         for image_index in x:
             images_to_make.append( images [image_index % 5 ] )
 
-        # Pass the card index, the images for this loteria card, and the card dimensions to the function
-        # that will generate a single loteria card.
+        # Pass the card index, the images for this Loteria card, and the card dimensions to the function
+        # that will generate a single Loteria card.
         create_single_loteria_card_image( save_path , card_index, images_to_make, 595, 842 )
         
         # Erase the contents of the list containing the images for the
-        # current loteria card and repeat until all cards are generated.
+        # current Loteria card and repeat until all cards are generated.
         images_to_make.clear()
 
 ###########################################################################
@@ -103,12 +102,12 @@ def load_loteria_images( path_to_images: str ) -> list():
 # Each list of of indices will contain number_of_images number of integers from the
 # range of 0-total_number_of_images. Each list will then be used index into another
 # list of containing image objects to paste onto an image that will represent a single
-# loteria card. 
+# Loteria card. 
 # 
-# For example, loteria cards traditionally have 16 images from a possible
+# For example, Loteria cards traditionally have 16 images from a possible
 # 54. If you want to generate 4 Loteria cards, function will return 4 lists,
 # each containing 16 integers in the range frome 0 to 53, each number in that range
-# representing one of the 54 possible loteria cards.
+# representing one of the 54 possible Loteria cards.
 #                  
 # number_of_cards: The number of Cards to generate indices for.
 # number_of_images: The number of images that will go onto a single Loteria card.
@@ -150,7 +149,6 @@ def generate_loteria_card_image_indices( number_of_cards: int, number_of_images:
                     print( "Matching pair" )
                     print( current_set )
                     print( test_set )
-                    pdb.set_trace()
 
     return( set_of_loteria_cards )
 
@@ -201,8 +199,8 @@ def check_that_cards_are_unique( first_set: list, second_set: list ) -> bool:
 ###########################################################################
 # create_single_loteria_card_image
 # Description: 
-# Creates one instance of a loteria card and saves it as a png.
-# save_path:     The path to save the loteria card.
+# Creates one instance of a Loteria card and saves it as a png.
+# save_path:     The path to save the Loteria card.
 # card_number:   The number to print onto the header of the card.
 # card_contents: The list of images that will be printed onto the card.
 # card_width:    The width of the card in pixels.
@@ -216,7 +214,7 @@ def create_single_loteria_card_image( save_path: str, card_number: int, card_con
     # The header a fraction of the card height.
     header_size = int( card_height * .04 )
 
-    # Make the part of the card that displays the loteria images the total height of the card
+    # Make the part of the card that displays the Loteria images the total height of the card
     # minues the size of the header.
     image_display_height = card_height-header_size
 
@@ -228,14 +226,14 @@ def create_single_loteria_card_image( save_path: str, card_number: int, card_con
     x_spacing = image_width  + 1
     y_spacing = image_height + 1
     
-    # Create the loteria card image which the pictures will be paste onto.
+    # Create the Loteria card image which the pictures will be paste onto.
     loteria_image = Image.new("RGB", ( card_width, card_height), color="white")
 
     # Draw the text that goes into the header.
     draw_card_text( "Carta " + str( card_number + 1 ), loteria_image, 5, 0 )
     draw_card_text( "Loteria", loteria_image, 500, 0 )
     
-    # Loop over the positions indices and add the pictures to the loteria card image.
+    # Loop over the positions indices and add the pictures to the Loteria card image.
     for row in range(4):
         for col in range(4):
             
@@ -291,37 +289,6 @@ def save_loteria_card_as_pdf( loteria_image, save_path: str, filename: str ):
     # Call the save function.
     loteria_image.save( output_file_name,'PDF',quality=100)
 
-# Start by making a proof of concept that will show we can display images
-# a grid and then save off that image.
 if __name__ == "__main__":
 
     main()
-
-
-
-
-def get_battlechip_images( filename='megaman_images/battlechips.png' ):
-    img = Image.open(filename)
-
-    image_height = 73
-    image_width  = 67
-
-    h_start = 0
-    w_start = 1
-    h_stop  = image_height
-    w_stop  = image_width
-
-    images = list()
-    for i in range(6):
-        for j in range(10):
-
-            # Create the crop indices to pull out indivial sprites from the sprite sheet.
-            curr_h_start = h_start      + image_height * i + i
-            curr_w_start = w_start      + image_width  * j
-            curr_h_stop  = image_height + image_height * i + i
-            curr_w_stop  = image_width  + image_width  * j
-    
-            curr_img = img.crop( ( curr_w_start, curr_h_start , curr_w_stop ,curr_h_stop ) )
-            images.append(curr_img)
-
-    return( images )
