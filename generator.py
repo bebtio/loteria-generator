@@ -187,23 +187,33 @@ def get_loteria_images( path_to_images: str ) -> list():
 if __name__ == "__main__":
 
 
+    # Load the images from the location which they are stored.
+
     images = get_loteria_images( "loteria_images" )
-    # Generate a set of cards. Basically an array of arrays.
-    # Where the first index is a loteria card and the second index is the 
-    # contents of that card, which are 16 numbers representing an image index which 
-    # will be used later to actually generate the card.
     
+    # Generate a set of cards. Basically an array of arrays of integers.
+    # Where the first index is a loteria card and the second index is the 
+    # contents of that card, which are 16 integers representing an image index which 
+    # will be used later to actually pull a card from the images list.
     set_of_loteria_cards = generate_loteria_cards( 4 )
 
     # create the cards based on the set_of_loteria_cards array.
     #create_all_loteria_card_images( set_of_loteria_cards )
 
-
     
     images_to_make = list()
     
+    # Loop through each of the numerical representations of each loteria card.
     for card_index, x in enumerate(set_of_loteria_cards):
+
+        # Pull out the integers that represent each image and store them in the images_to_make list.
         for image_index in x:
             images_to_make.append(images[image_index % 5])
+
+        # Pass the card index, the images for this loteria card, and the card dimensions to the function
+        # that will generate a single loteria card.
         create_single_loteria_card_image("test_loteria_cards", card_index, images_to_make, 595, 842 )
+        
+        # Erase the contents of the list containing the images for the
+        # current loteria card and repeat until all cards are generated.
         images_to_make.clear()
