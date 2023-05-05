@@ -51,7 +51,7 @@ def create_all_loteria_card_images( num_cards_to_generate: int, load_path: str, 
     # Where the first index is a Loteria card and the second index is the 
     # contents of that card, which are 16 integers representing an image index which 
     # will be used later to actually pull a card from the images list.
-    set_of_loteria_cards = generate_loteria_card_image_indices( num_cards_to_generate, num_images_on_card, len( images ) )
+    set_of_loteria_cards = generate_loteria_card_image_indices( num_cards_to_generate, num_images_on_card, len(images) )
 
     images_to_make = list()
     
@@ -121,21 +121,34 @@ def generate_loteria_card_image_indices( number_of_cards: int, number_of_images:
     set_of_loteria_cards = list()
 
     # Loop through number of loteria cards to be generated.
-    for card_index in range( 0, number_of_cards ):
+    current_card =  generate_random_set( number_of_images, total_number_of_images )
+    set_of_loteria_cards.append( current_card )
 
+    current_card =  generate_random_set( number_of_images, total_number_of_images )
+    set_of_loteria_cards.append( current_card )
+    
+    card_index = 1
+
+    # Keep generating cards until the number of unique cards is what is requested.
+    # Before doing that, we need to check that we can even generate that many unique cards.
+    if( False == check_if_number_of_cards_possible( number_of_cards, number_of_images, total_number_of_images ) ):
+        print("Error: The number of Loteria cards requested cannot be generated with the number of images given" )
+        exit()
+        
+    while card_index < number_of_cards - 1:
+    
+        # Loop through number of loteria cards to be generated.
         current_card =  generate_random_set( number_of_images, total_number_of_images )
-
-        set_of_loteria_cards.append( current_card )
 
         # Add logic here to test for uniqueness between the currently generated set and all the previous ones.
         # This is a brute force approach that can get slow.
         # With the small set being generated in this project... this probably doesn't matter... 
         if( len( set_of_loteria_cards ) > 1 ):
             
-            # TODO move this all to its own function.
-
             # Get the most recently generated set.
-            current_set = set_of_loteria_cards[ card_index ]
+            current_set = current_card
+
+            are_unique = True
 
             for test_index in range( 0, card_index ):
                 
@@ -146,13 +159,40 @@ def generate_loteria_card_image_indices( number_of_cards: int, number_of_images:
                 are_unique = check_that_cards_are_unique( current_set, test_set )
             
                 # If they aren't unique... then the current set is bad and needs to be regenerated.
-                # Currently just reports a message and continues.
+                # break out of the current loop and re-generate.
                 if( are_unique == False ):
-                    print( "Matching pair" )
-                    print( "Cards " + str( card_index + 1 ) + " and " + str( test_index + 1 ) )
-                    pdb.set_trace()
+                    break
+
+            # Only add if card is unique.
+            if( are_unique ):
+                set_of_loteria_cards.append( current_card )
+                card_index += 1
 
     return( set_of_loteria_cards )
+
+###########################################################################
+# check_if_number_of_cards_possible.
+# Description: Checks that it is possible to unique generate the number of cards
+# requested from the list of images given.
+# number_of_cards:        The number of loteria cards to generate.
+# number_of_images:       Number of images that will go onto a single loteria card.
+# total_number_of_images: Total number of images passed to this program to generate loteria cards.
+###########################################################################
+def check_if_number_of_cards_possible( number_of_cards: int, number_of_images: int, total_number_of_images: int   ) -> bool:
+
+    # Performs 
+    #    n!
+    # -------
+    # k!(n-k)!    
+    # Which computes the number of ways you can uniquely pick k number of items from a set of n things with out repitition.
+    possible_combinations = math.factorial( total_number_of_images ) / (math.factorial( number_of_images ) * math.factorial( total_number_of_images-number_of_images) )
+    
+    # If the number of loteria cards requested exceeds this computed value, then we can't 
+    # generate enough unique cards to meet user requirements.
+    if( number_of_cards > possible_combinations ):
+        return( False )
+    else: 
+        return( True )
 
 ###########################################################################
 # generate_random_set.
@@ -230,7 +270,8 @@ def create_single_loteria_card_image( save_path: str, card_number: int, card_con
 
     # Draw the text that goes into the header.
     draw_card_text( "Carta " + str( card_number + 1 ), loteria_image, 5, 0 )
-    draw_card_text( "Loteria", loteria_image, card_width * .8, 0 )
+    draw_card_text( "Feliz 50 Veronica!", loteria_image, card_width * .3, 0 )
+    draw_card_text( "Loteria", loteria_image, card_width * .85, 0 )
 
     # Paste the Loteria images into the the Loteria card in a 4x4 grid.
     loteria_image = paste_grid_of_images( loteria_image, card_contents, card_width, image_display_height, 0, header_size, 4, 4 )
@@ -302,7 +343,7 @@ def paste_grid_of_images( main_image, images_to_paste: list, paste_area_width: i
 ###########################################################################
 def draw_card_text( text: str, image: Image, x_pos: int, y_pos: int ):
         
-        font = ImageFont.truetype( "/usr/share/fonts/truetype/abyssinica/AbyssinicaSIL-Regular.ttf", 28, encoding="unic" )
+        font = ImageFont.truetype( "/usr/share/fonts/truetype/abyssinica/AbyssinicaSIL-Regular.ttf", 56, encoding="unic" )
         
         ImageDraw.Draw( image ).text( ( x_pos, y_pos ), text, fill=(0,0,0,255), font=font )
 
