@@ -18,17 +18,18 @@ def main():
                                       description="Takes a directory filled with images and generates a given number of Loteria cards based on those images."
                                     )
 
-    parser.add_argument( "-n", "--num_cards_to_generate" , type=int, default=1       , help="The number of loteria cards that will be generated."                                        )
-    parser.add_argument( "-l", "--load_path"             , type=str, default="images", help="The path where the images used to generate loteria cards are expected to be."               )
-    parser.add_argument( "-s", "--save_path"             , type=str, default="output", help="The path where the generated cards will be stored."                                         )
-    parser.add_argument( "-x", "--card_width"            , type=int, default=595*2   , help="The width of the Loteria card in pixels."                                                   )
-    parser.add_argument( "-y", "--card_height"           , type=int, default=842*2   , help="The height of the Loteria card in pixels."                                                  )
-    parser.add_argument( "-d", "--num_deck_pages"        , type=int, default=1       , help="The number of pages to split the deck pages into."                                          )
-
+    parser.add_argument( "-n", "--num_cards_to_generate" , type=int, default=1       , help="The number of loteria cards that will be generated."                                                          )
+    parser.add_argument( "-l", "--load_path"             , type=str, default="images", help="The path where the images used to generate loteria cards are expected to be."                                 )
+    parser.add_argument( "-s", "--save_path"             , type=str, default="output", help="The path where the generated cards will be stored."                                                           )
+    parser.add_argument( "-x", "--card_width"            , type=int, default=595*2   , help="The width of the Loteria card in pixels."                                                                     )
+    parser.add_argument( "-y", "--card_height"           , type=int, default=842*2   , help="The height of the Loteria card in pixels."                                                                    )
+    parser.add_argument( "-d", "--num_deck_pages"        , type=int, default=1       , help="The number of pages to split the deck pages into."                                                            )
+    parser.add_argument( "-i", "--num_images_on_card"    , type=int, default=16      , help="The number of images that will appear on each card. Must be a perfect square. If you want it to look good."   )
+    
     args = parser.parse_args()
 
     # Run the generator.
-    create_all_loteria_card_images( args.num_cards_to_generate, args.load_path, args.save_path, args.card_width, args.card_height )
+    create_all_loteria_card_images( args.num_cards_to_generate, args.load_path, args.save_path, args.card_width, args.card_height, args.num_images_on_card )
     create_loteria_draw_pile( args.card_width, args.card_height, args.load_path, args.save_path, args.num_deck_pages )
 
 ###########################################################################
@@ -41,7 +42,7 @@ def main():
 # card_width:            The width in pixels to make the cards.
 # card_height:           The height in pixels to make the cards.
 ###########################################################################
-def create_all_loteria_card_images( num_cards_to_generate: int, load_path: str, save_path: str, card_width: int, card_height: int ):
+def create_all_loteria_card_images( num_cards_to_generate: int, load_path: str, save_path: str, card_width: int, card_height: int, num_images_on_card: int ):
     
     # Load the images from the location which they are stored.
     images = load_loteria_images( load_path )
@@ -50,7 +51,7 @@ def create_all_loteria_card_images( num_cards_to_generate: int, load_path: str, 
     # Where the first index is a Loteria card and the second index is the 
     # contents of that card, which are 16 integers representing an image index which 
     # will be used later to actually pull a card from the images list.
-    set_of_loteria_cards = generate_loteria_card_image_indices( num_cards_to_generate, 16, 54 )
+    set_of_loteria_cards = generate_loteria_card_image_indices( num_cards_to_generate, num_images_on_card, len( images ) )
 
     images_to_make = list()
     
@@ -60,8 +61,7 @@ def create_all_loteria_card_images( num_cards_to_generate: int, load_path: str, 
         # Pull out the integers that represent each image and store them in the images_to_make list.
         for image_index in x:
 
-            # TODO: don't forget to reomve this %. Otherwise we will always choose the first 5 images in the list.
-            images_to_make.append( images [image_index % 5] )
+            images_to_make.append( images [image_index] )
 
         # Pass the card index, the images for this Loteria card, and the card dimensions to the function
         # that will generate a single Loteria card.
@@ -122,7 +122,7 @@ def generate_loteria_card_image_indices( number_of_cards: int, number_of_images:
 
     # Loop through number of loteria cards to be generated.
     for card_index in range( 0, number_of_cards ):
-        
+
         current_card =  generate_random_set( number_of_images, total_number_of_images )
 
         set_of_loteria_cards.append( current_card )
@@ -149,8 +149,8 @@ def generate_loteria_card_image_indices( number_of_cards: int, number_of_images:
                 # Currently just reports a message and continues.
                 if( are_unique == False ):
                     print( "Matching pair" )
-                    print( current_set )
-                    print( test_set )
+                    print( "Cards " + str( card_index + 1 ) + " and " + str( test_index + 1 ) )
+                    pdb.set_trace()
 
     return( set_of_loteria_cards )
 
@@ -181,18 +181,22 @@ def generate_random_set( number_of_samples: int, range_of_values: int ) -> list:
 ###########################################################################
 def check_that_cards_are_unique( first_set: list, second_set: list ) -> bool:
 
+    # Make copies so we don't modify the original when we sort.
+    first = first_set.copy()
+    second = second_set.copy()
+
     # Sort the sets so we can compare them element by element.
-    first_set.sort()
-    second_set.sort()
+    first.sort()
+    second.sort()
 
     # Compare sets element by element. 
     # The only way these are not unique is if we iterate over the whole set
     # and we never find a mismatching pair.
     # enumerate works here because first_set and second_set will be the same size.
-    for index, val in enumerate ( first_set ):
+    for index, val in enumerate ( first ):
         
         # As soon as we find a mismatching pair, return.
-        if( first_set[ index ] != second_set[ index ]):
+        if( first[ index ] != second[ index ]):
             return( True )
 
     # If we never found a mismatching index, then these two sets of values
