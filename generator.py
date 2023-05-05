@@ -270,7 +270,7 @@ def create_single_loteria_card_image( save_path: str, card_number: int, card_con
 
     # Draw the text that goes into the header.
     draw_card_text( "Carta " + str( card_number + 1 ), loteria_image, 5, 0 )
-    draw_card_text( "Feliz 50 Veronica!", loteria_image, card_width * .3, 0 )
+    draw_card_text( "Feliz 50 años Veronica!", loteria_image, card_width * .25, 0 )
     draw_card_text( "Loteria", loteria_image, card_width * .85, 0 )
 
     # Paste the Loteria images into the the Loteria card in a 4x4 grid.
